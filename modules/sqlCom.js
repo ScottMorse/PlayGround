@@ -147,7 +147,6 @@ exports.deleteTable = (tbName) => {return runCommand(deleteTable(tbName))}
 exports.encryptPassword = (pswd) => {
     bcrypt.hash(pswd, 5, function( err, bcryptedPassword) {
         if (err) throw err
-        console.log(bcryptedPassword)
         return bcryptedPassword
     })
 }

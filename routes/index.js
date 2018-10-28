@@ -3,7 +3,7 @@ let router = express.Router();
 let path = require("path")
 let sqlCom = require("../modules/sqlCom")
 
-sqlCom.selectTable('users').then(res => console.log(res))
+sqlCom.encryptPassword("abcd").then(result => console.log(result))
 
 
 /* GET home page. */
