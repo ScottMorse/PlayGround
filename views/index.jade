@@ -3,10 +3,16 @@ html
   head
     title PlayGround
     meta(charset='utf-8')
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/index.css')
   body
-    div.blue What hath God wrought?
-    form#example-form(method='post' action='/submit')
-      input(type='text')
-      input(type='submit')
-    script(src='/javascripts/indexStatic.js')
+    h1 Playground
+    h2 Register
+    div#reg-form-wrap.auth-form-wrap
+      form#reg-form(method='post' action='/register').auth-form
+        input(type='text' placeholder='Your username' name='regUsername')
+        input(type='text' placeholder='example@email.com' name='regEmail')
+        input(type='text' placeholder='example@email.com (Confirm)')
+        input(type='password' placeholder="*******" name='regPswd')
+        input(type='password' placeholder="******* (Confirm)")
+        input(type='submit')
+    script(src='/scripts/indexStatic.js')

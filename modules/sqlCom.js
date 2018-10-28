@@ -3,96 +3,55 @@
 let mysql = require('mysql')
 let bcrypt = require('bcrypt')
 
-let dbCon =  mysql.createConnection({
+const dbName = 'nodeDb'
+
+const config = {
     host: "localhost",
     user: "root",
     password: ""
-})
-
-let sqlConnected = false
-dbCon.connect(function(err) {
-    if (err) throw err
-    console.log("Connected to SQL")
-    sqlConnected = true
-    selectDb("nodeDb")
-})
-
-exports.anyCommand = (comm) => {
-    dbCon.query(comm, (err,result)=>{
-        if (err) throw err
-        console.log("SQL: " + comm)
-        return result
-    })
 }
 
-function createDb(dbName){
-    dbCon.query("CREATE DATABASE " + dbName, function (err, result) {
-        if (err) throw err
-        console.log("Database " + dbName + " created")
-    })
-}
-
-exports.createDb = (dbName) => {
-    createDb(dbName)
-}
-
-function selectDb(dbName){
-    dbCon.query("USE " + dbName, (err,result)=>{
-        if (err) createDb(dbName)
-        else console.log("Using database " + dbName)
-    })
-}
-
-exports.selectDb = (dbName) => {
-    selectDb(dbName)
-}
-
-// function selectTable(tbName){
-//     dbCon.query("CREATE TABLE" + tbName)
-// }
-
-exports.createTable = (tbName,argString,createPrimaryKey) => {
-    argString = " " + argString || ""
-    createPrimaryKey = createPrimaryKey || false
-
-    dbCon.query('CREATE TABLE ' + tbName + argString,(err,result) => {
-        if (err) console.log('Did NOT create table ' + tbName)
-        else
-        {
-        console.log("Table " + tbName + " created")
-        if(createPrimaryKey && !argString.includes('PRIMARY KEY')){
-            dbCon.query("ALTER TABLE " + tbName + " ADD COLUMN key AUTO_INCREMENT",(err,result) => {
-                if (err) throw err
-            })
-            dbCon.query("ALTER TABLE " + tbName + " ADD COLUMN PRIMARY KEY(key)",(err,result) => {
-                if (err) throw err
-            })
-        }
+class Database {
+    constructor( config ) {
+        this.connection = mysql.createConnection( config );
+        console.log('SQL connection successful')
     }
-    })
+    query( sql, args ) {
+        return new Promise( ( resolve, reject ) => {
+            this.connection.query( sql, args, ( err, rows ) => {
+                if ( err )
+                    return reject( err );
+                resolve( rows );
+            } );
+        } );
+    }
+    close() {
+        return new Promise( ( resolve, reject ) => {
+            this.connection.end( err => {
+                if ( err )
+                    return reject( err );
+                console.log('SQL connection closed.')
+                resolve();
+            } );
+        } );
+    }
 }
 
-exports.insertData = (tbName,columnArr,valueDArr) => {
-    const comm = "INSERT INTO " + tbName + " (" + columnArr.join(", ") + ") VALUES ?"
-    dbCon.query(comm,valueArr,(err,result) => {
-        if (err) throw err;
-        console.log(result.affectedRows + " record(s) inserted to " + tbName)
-        return result
-    })
+let db
+function useDb(){
+    db = new Database(config)
+    console.log('SQL using database ' + dbName)
+    return db.query("USE " + dbName)
 }
 
-exports.updateData = (tbName,value,valueColumn,filterValue,filterColumn) => {
-    const comm = "UPDATE " + tbName + " SET " + valueColumn + " = " + valueCanyon + " WHERE " + filterColumn + " = " + filterValue;
-    dbCon.query(comm,valueArr,(err,result) => {
-        if (err) throw err
-        console.log("Record(s) for " + filterColumn + " " + filterValue + " updated to " + value)
-        return result
-    })
+useDb()
+
+function runCommand(comm){
+    console.log(comm)
+    return db.query(comm)
 }
 
-//result is an array of objects of all records
-//fields is an array of objects about each column
-exports.selectTable = (tbName,columnArr,limit,limitOffset) => {
+function selectTable(tbName,columnArr,limit,limitOffset){
     let comm
     if(!columnArr)
     {
@@ -108,14 +67,25 @@ exports.selectTable = (tbName,columnArr,limit,limitOffset) => {
     if(limit && limitOffset){
         comm += " OFFSET " + limitOffset
     }
-    dbCon.query(comm,(err,result,fields) => {
-        if (err) throw err
-        console.log("SQL: " + comm)
-        return result
-    })
+    return comm
 }
 
-exports.selectTableFiltered = (tbName,filterColumn,filter,columnArr,limit,limitOffset) => {
+function createTable(tbName,argString){
+    argString = " " + argString || ""
+    comm = 'CREATE TABLE ' + tbName + argString
+    return comm
+}
+
+
+function insertData(tbName,columnArr,valueArr){
+    return "INSERT INTO " + tbName + " (" + columnArr.join(", ") + ") VALUES " + "(" + valueArr.join(", ") + ")"
+}
+
+function updateData(tbName,value,valueColumn,filterValue,filterColumn){
+    return "UPDATE " + tbName + " SET " + valueColumn + " = " + valueCanyon + " WHERE " + filterColumn + " = " + filterValue
+}
+
+function selectTableFiltered(tbName,filterColumn,filter,columnArr,limit,limitOffset){
     let comm
     if(!columnArr)
     {
@@ -131,14 +101,10 @@ exports.selectTableFiltered = (tbName,filterColumn,filter,columnArr,limit,limitO
     if(limit && limitOffset){
         comm += " OFFSET " + limitOffset
     }
-    dbCon.query(comm,(err,result,fields) => {
-        if (err) throw err
-        console.log("SQL: " + comm)
-        return result
-    })
+    return comm
 }
 
-exports.selectSortedTable = (tbName,sortColumn,columnArr,desc,limit,limitOffset) => {
+function selectSortedTable (tbName,sortColumn,columnArr,desc,limit,limitOffset){
     let comm
     if(!columnArr)
     {
@@ -157,33 +123,33 @@ exports.selectSortedTable = (tbName,sortColumn,columnArr,desc,limit,limitOffset)
     if(limit && limitOffset){
         comm += " OFFSET " + limitOffset
     }
-    dbCon.query(comm,(err,result,fields) => {
-        if (err) throw err
-        console.log("SQL: " + comm)
-        return result
-    })
+    return comm
 }
 
-exports.deleteRecords = (tbName,filterColumn,filter) => {
-    const comm = "DELETE FROM " + tbName + " WHERE " + filterColumn + " = '" + filter + "'"
-    dbCon.query(comm,(err,result) => {
-        if (err) throw err
-        console.log("SQL: " + comm)
-        return result
-    })
+function deleteRecords(tbName,filterColumn,filterValue){
+    return comm = "DELETE FROM " + tbName + " WHERE " + filterColumn + " = '" + filterValue + "'"
 }
 
-exports.deleteTable = (tbName) => {
-    dbCon.query("DROP TABLE IF EXISTS " + tbName,(err,result) => {
-        if (err) throw err
-        console.log("Table " + tbName + " deleted")
-    })
+function deleteTable(tbName){
+    return "DROP TABLE IF EXISTS " + tbName
 }
 
-exports.savePassword = (pswd) => {
+exports.runCommand = (comm) => {return runCommand(comm)}
+exports.selectTable = (tbName,columnArr,limit,limitOffset) => {return runCommand(selectTable(tbName,columnArr,limit,limitOffset))}
+exports.createTable = (tbName,argString) => {return runCommand(createTable(tbName,argString))}
+exports.selectSortedTable = (tbName,sortColumn,columnArr,desc,limit,limitOffset) => {return runCommand(selectSortedTable(tbName,sortColumn,columnArr,desc,limit,limitOffset))}
+exports.selectTableFiltered = (tbName,filterColumn,filter,columnArr,limit,limitOffset) => {return runCommand(selectTableFiltered(tbName,filterColumn,filter,columnArr,limit,limitOffset))}
+exports.insertData = (tbName,columnArr,valueArr) => {return runCommand(insertData(tbName,columnArr,valueArr))}
+exports.updateData = (tbName,value,valueColumn,filterValue,filterColumn) => {return runCommand(updateData(tbName,value,valueColumn,filterValue,filterColumn))}
+exports.deleteRecords = (tbName,filterColumn,filterValue) => {return runCommand(deleteRecords(tbName,filterColumn,filterValue))}
+exports.deleteTable = (tbName) => {return runCommand(deleteTable(tbName))}
+
+exports.encryptPassword = (pswd) => {
     bcrypt.hash(pswd, 5, function( err, bcryptedPassword) {
-        //! save to db
-    });
+        if (err) throw err
+        console.log(bcryptedPassword)
+        return bcryptedPassword
+    })
 }
 
 exports.comparePasswords = (givenPswd,dbPswd) => {

@@ -1,0 +1,15 @@
+html{
+  line-height: 1;
+}
+
+body{
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-form{
+  display: flex;
+  flex-direction: column;
+}
