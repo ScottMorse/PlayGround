@@ -11,6 +11,10 @@ const config = {
     password: ""
 }
 
+function wrapString(string){
+    return "'" + string + "'"
+}
+
 class Database {
     constructor( config ) {
         this.connection = mysql.createConnection( config );
@@ -77,7 +81,7 @@ function createTable(tbName,argString){
 }
 
 runCommand(selectTable('users')).catch(err => {
-    runCommand(createTable('users',"( ID int NOT NULL AUTO_INCREMENT, username varchar(20) NOT NULL , email varchar(255) NOT NULL, pswd varchar(255) NOT NULL, PRIMARY KEY (ID) )"))
+    runCommand(createTable('users',"( ID int NOT NULL AUTO_INCREMENT, username varchar(20) NOT NULL , email varchar(255) NOT NULL, pswd varchar(255) NOT NULL, fullname varchar(30), instrument varchar(50), aboutme varchar(280), location varchar(50), PRIMARY KEY (ID) )"))
       .catch(err => console.log(err))
 })
 
@@ -85,8 +89,19 @@ function insertData(tbName,columnArr,valueArr){
     return "INSERT INTO " + tbName + " (" + columnArr.join(", ") + ") VALUES " + "(" + valueArr.join(", ") + ")"
 }
 
-function updateData(tbName,value,valueColumn,filterValue,filterColumn){
-    return "UPDATE " + tbName + " SET " + valueColumn + " = " + valueCanyon + " WHERE " + filterColumn + " = " + filterValue
+function updateColumns(tbName,valueArr,valueColumnArr,filterValue,filterColumn){
+    if(valueArr.length == 1){
+        return "UPDATE " + tbName + " SET " + valueColumnArr[0] + " = " + valueArr[0] + " WHERE " + filterColumn + " = " + filterValue
+    }
+    else{
+        comm = "UPDATE " + tbName + " SET "
+        for(let i=0;i<valueArr.length;i++){
+            comm += valueColumnArr[i] + " = " + valueArr[i]
+            comm += i < valueArr.length - 1 ? ", ":" "
+        }
+        comm += " WHERE " + filterColumn + " = " + filterValue
+        return comm
+    }
 }
 
 function selectTableFiltered(tbName,filterColumn,filter,columnArr,limit,limitOffset){
@@ -144,11 +159,11 @@ exports.createTable = (tbName,argString) => {return runCommand(createTable(tbNam
 exports.selectSortedTable = (tbName,sortColumn,columnArr,desc,limit,limitOffset) => {return runCommand(selectSortedTable(tbName,sortColumn,columnArr,desc,limit,limitOffset))}
 exports.selectTableFiltered = (tbName,filterColumn,filter,columnArr,limit,limitOffset) => {return runCommand(selectTableFiltered(tbName,filterColumn,filter,columnArr,limit,limitOffset))}
 exports.insertData = (tbName,columnArr,valueArr) => {return runCommand(insertData(tbName,columnArr,valueArr))}
-exports.updateData = (tbName,value,valueColumn,filterValue,filterColumn) => {return runCommand(updateData(tbName,value,valueColumn,filterValue,filterColumn))}
+exports.updateColumns = (tbName,valueArr,valueColumnArr,filterValue,filterColumn) => {return runCommand(updateColumns(tbName,valueArr,valueColumnArr,filterValue,filterColumn))}
 exports.deleteRecords = (tbName,filterColumn,filterValue) => {return runCommand(deleteRecords(tbName,filterColumn,filterValue))}
 exports.deleteTable = (tbName) => {return runCommand(deleteTable(tbName))}
 
-exports.wrapString = (string) => {return "'" + string + "'"}
+exports.wrapString = (string) => {return wrapString(string)}
 
 exports.encryptPassword = (pswd) => {return bcrypt.hash(pswd, 5)}
 exports.comparePasswords = (givenPswd,dbPswd) => {return bcrypt.compare(givenPswd, dbPswd)}

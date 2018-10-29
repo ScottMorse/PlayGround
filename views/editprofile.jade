@@ -1,0 +1,19 @@
+doctype html
+html
+  head
+    title PlayGround
+    meta(charset='utf-8')
+    link(rel='stylesheet', href='/stylesheets/index.css')
+    link(rel='stylesheet', href='/stylesheets/editprofile.css')
+  body
+    h1 PlayGround
+    h2 Your Profile: #[span=username]
+    div#change-email
+      form#edit-form(method='post' action='/myprofile/newProfileInfo')
+        div.original My full name: #[input#newName(type="text" name="fullname" maxlength=30 placeholder=fullname)]
+        div.orginal Change email address: #[input#new-email(type="email" name="email" placeholder=email)]
+        div.original My preferred instrument(s): #[input#new-instrument(type="text" name="instrument" maxlength=50 placeholder=instrument)]
+        div.orginal About me: #[input#new-aboutme(type="text" name="aboutme" maxlength=280 placeholder=aboutme)]
+        div.original My location: #[input#new-location(type="text" name="location" maxlength=50 placeholder=location)]
+        input(type="submit")
+    script(src="/scripts/editprofileStatic.js")
