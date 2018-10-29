@@ -1,0 +1,4 @@
+include head.jade
+    h2 Profile: #[span=username]
+    a(href="/dashboard")#edit-prof My Dashboard
+    form#logout-form(method='post' action='/logout') #[input(type="submit" value="Logout")]

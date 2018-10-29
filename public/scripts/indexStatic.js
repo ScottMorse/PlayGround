@@ -20,11 +20,7 @@ function submitReg(e){
     const confirmEmail = this.children[2].value
     const pswd = this.children[3].value
     const confirmPswd = this.children[4].value
-    if(!username || !email || !confirmEmail || !pswd || !confirmPswd){
-        e.preventDefault()
-        console.warn('Missing form fields')
-    }
-    else if(username.length < 4){
+    if(username.length < 4){
         e.preventDefault()
         console.warn('Username too short.')
     }
@@ -57,4 +53,7 @@ function submitReg(e){
         console.warn("Passwords don't match")
     }
 }
+
+
+
 regForm.addEventListener('submit',submitReg)

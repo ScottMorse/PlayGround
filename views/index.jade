@@ -1,18 +1,22 @@
-doctype html
-html
-  head
-    title PlayGround
-    meta(charset='utf-8')
-    link(rel='stylesheet', href='/stylesheets/index.css')
-  body
-    h1 Playground
+include head.jade
+    h2 
+      |Welcome
+      div=username
     h2 Register
+    div#blame=regBlame
     div#reg-form-wrap.auth-form-wrap
-      form#reg-form(method='post' action='/register').auth-form
-        input(type='text' placeholder='Your username' name='regUsername')
-        input(type='text' placeholder='example@email.com' name='regEmail')
-        input(type='text' placeholder='example@email.com (Confirm)')
-        input(type='password' placeholder="*******" name='regPswd')
+      form#reg-form.auth-form(method='post' action='/register')
+        input(type='text' placeholder='Your username' name='regUsername' required)
+        input(type='text' placeholder='example@email.com' name='regEmail' required)
+        input(type='text' placeholder='example@email.com (Confirm)' required)
+        input(type='password' placeholder="*******" name='regPswd' required)
         input(type='password' placeholder="******* (Confirm)")
+        input(type='submit')
+    h2 Login
+    div#blame=logBlame
+    div#log-form-wrap.auth-form-wrap
+      form#log-form.auth-form(method='post' action='/login' required)
+        input(type='text' placeholder='Your username' name='logUsername' required)
+        input(type='password' placeholder="*******" name='logPswd')
         input(type='submit')
     script(src='/scripts/indexStatic.js')

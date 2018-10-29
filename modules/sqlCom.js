@@ -47,7 +47,7 @@ function useDb(){
 useDb()
 
 function runCommand(comm){
-    console.log(comm)
+    // console.log(comm)
     return db.query(comm)
 }
 
@@ -76,6 +76,10 @@ function createTable(tbName,argString){
     return comm
 }
 
+runCommand(selectTable('users')).catch(err => {
+    runCommand(createTable('users',"( ID int NOT NULL AUTO_INCREMENT, username varchar(20) NOT NULL , email varchar(255) NOT NULL, pswd varchar(255) NOT NULL, PRIMARY KEY (ID) )"))
+      .catch(err => console.log(err))
+})
 
 function insertData(tbName,columnArr,valueArr){
     return "INSERT INTO " + tbName + " (" + columnArr.join(", ") + ") VALUES " + "(" + valueArr.join(", ") + ")"
@@ -144,21 +148,7 @@ exports.updateData = (tbName,value,valueColumn,filterValue,filterColumn) => {ret
 exports.deleteRecords = (tbName,filterColumn,filterValue) => {return runCommand(deleteRecords(tbName,filterColumn,filterValue))}
 exports.deleteTable = (tbName) => {return runCommand(deleteTable(tbName))}
 
-exports.encryptPassword = (pswd) => {
-    bcrypt.hash(pswd, 5, function( err, bcryptedPassword) {
-        if (err) throw err
-        return bcryptedPassword
-    })
-}
+exports.wrapString = (string) => {return "'" + string + "'"}
 
-exports.comparePasswords = (givenPswd,dbPswd) => {
-    bcrypt.compare(givenPswd, dbPswd, (err, isMatch) => {
-        if (isMatch)
-        {
-            //!log in
-        }else
-        {
-            //!user err
-        }
-    })
-}
+exports.encryptPassword = (pswd) => {return bcrypt.hash(pswd, 5)}
+exports.comparePasswords = (givenPswd,dbPswd) => {return bcrypt.compare(givenPswd, dbPswd)}
