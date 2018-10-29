@@ -1,5 +1,28 @@
 {
-  "name": "playground",
+  "name": "spacetoplay",
+  "author": "Scott Morse",
+  "description": "An app for musicians to coordinate with each other.",
+  "keywords": [
+    "music",
+    "spacetoplay",
+    "space to play",
+    "musician",
+    "coordinate",
+    "booking gigs",
+    "schedule rehearsal",
+    "schedule gig",
+    "gig calendar",
+    "musician calendar",
+    "find substitute musician",
+    "rehearsal scheduling",
+    "musician network",
+    "musician networking",
+    "musician schedule"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ScottMorse/Space-To-Play.git"
+  },
   "version": "0.0.0",
   "private": true,
   "scripts": {

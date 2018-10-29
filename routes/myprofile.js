@@ -29,8 +29,8 @@ router.get('/',(req,res,next) => {
 })
 
 router.get('/edit',(req,res,next) => {
+    const cookies = req.cookies
     if(!user){
-        const cookies = req.cookies
       if(cookies.USER)
       {
         userCookie = cookies.USER.split('::')
@@ -46,21 +46,26 @@ router.get('/edit',(req,res,next) => {
         })
       }
       else{
-        res.redirect('../')
+        res.redirect('/')
       }
     }
     else{
-        res.render('editprofile',{
-          username: user.username,
-          email: user.email,
-          fullname: user.fullname,
-          aboutme: user.aboutme,
-          instrument: user.instrument,
-          location: user.location
-      })
+        if(!cookies.USER){
+          user = undefined
+          res.redirect('/')
+        }
+        else{
+          res.render('editprofile',{
+            username: user.username,
+            email: user.email,
+            fullname: user.fullname,
+            aboutme: user.aboutme,
+            instrument: user.instrument,
+            location: user.location
+          })
+        }
     }
 })
-
 
 router.post('/newProfileInfo',(req,res,next) => {
     const cookies = req.cookies

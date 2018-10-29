@@ -10,7 +10,12 @@ let cookies
 /* GET home page. */
 router.get('/', function(req, res, next) {
   let cookies = req.cookies
-  res.render('index', { title: 'Express' });
+  if(cookies.USER){
+    res.redirect('/dashboard')
+  }
+  else{
+    res.render('index');
+  }
 })
 
 //Registration
