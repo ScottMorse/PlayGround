@@ -1,1 +1,26 @@
-h1 here
+doctype html
+html
+  head
+    title Space to Play
+    meta(charset='utf-8')
+    link(rel='stylesheet', href='/stylesheets/index.css')
+    link(rel='stylesheet', href='/stylesheets/search.css')
+  body
+    h1 Space to Play
+  div Users found: 
+  each match in matches
+    div.user
+      div=match.fullname
+      div=match.username
+      div=match.location
+      div=match.instrument
+      form.profile-form(method="get" action="/profile") #[input.hidden(type='text' value=match.id name="uid")] #[input.profile-button(type="submit" value="View Profile")]
+
+  each showpage in showPage
+    div Page #[span=page]
+
+  each next in nextform
+    form.next-form(method="get" action="/search") #[input.hidden(type='text' value=query name="query")] #[input.hidden(type='text' value=parseInt(page) + 1 name="page")] #[input.profile-button(type="submit" value="Next Page")]
+  
+  each prev in prevform
+    form.next-form(method="get" action="/search") #[input.hidden(type='text' value=query name="query")] #[input.hidden(type='text' value=parseInt(page) - 1 name="page")] #[input.profile-button(type="submit" value="Previous Page")]

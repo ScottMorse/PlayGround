@@ -3,22 +3,46 @@
 let mysql = require('mysql')
 let bcrypt = require('bcrypt')
 
-const dbName = 'nodeDb'
 
 const config = {
     host: "localhost",
     user: "root",
-    password: ""
+    password: "",
+    database: "nodeDb",
 }
 
 function wrapString(string){
     return "'" + string + "'"
 }
 
+let connectionState
+
+function handleDisconnect() {
+    connection = mysql.createConnection(config)
+                                                
+    connection.connect(function(err) {             
+        if(err){
+            console.log('error when connecting to db:', err)
+            setTimeout(handleDisconnect, 2000)
+        }
+        else console.log('mySQL connected successfully')
+      }                                    
+    )                           
+    connection.on('error', function(err) {
+      console.log('db error: ')
+      if(err.code === 'PROTOCOL_CONNECTION_LOST') {
+        console.log('PROTOCOL_CONNECTION_LOST')
+        handleDisconnect()                        
+      } else {                                     
+        throw err                                 
+      }
+    })
+    return connection
+}
+
 class Database {
     constructor( config ) {
-        this.connection = mysql.createConnection( config );
-        console.log('SQL connection successful')
+        this.connection = handleDisconnect();
     }
     query( sql, args ) {
         return new Promise( ( resolve, reject ) => {
@@ -44,15 +68,19 @@ class Database {
 let db
 function useDb(){
     db = new Database(config)
-    console.log('SQL using database ' + dbName)
-    return db.query("USE " + dbName)
+    checkTables()
+      .then(after => console.log('mySQL tables okay.'))
+      .catch(err => {setTimeout(checkTables(),1000)})
 }
 
-useDb()
+function checkTables(){
+    return runCommand(selectTable('users')).catch(err => {
+        runCommand(createTable('users',"( ID int NOT NULL AUTO_INCREMENT, username varchar(20) NOT NULL , email varchar(255) NOT NULL, pswd varchar(255) NOT NULL, fullname varchar(30), instrument varchar(50), aboutme varchar(280), location varchar(50), PRIMARY KEY (ID) )"))
+    })
+}
 
 function runCommand(comm){
-    // console.log(comm)
-    return db.query(comm)
+    return db.query(comm).catch(err => {throw err})
 }
 
 function selectTable(tbName,columnArr,limit,limitOffset){
@@ -79,11 +107,6 @@ function createTable(tbName,argString){
     comm = 'CREATE TABLE ' + tbName + argString
     return comm
 }
-
-runCommand(selectTable('users')).catch(err => {
-    runCommand(createTable('users',"( ID int NOT NULL AUTO_INCREMENT, username varchar(20) NOT NULL , email varchar(255) NOT NULL, pswd varchar(255) NOT NULL, fullname varchar(30), instrument varchar(50), aboutme varchar(280), location varchar(50), PRIMARY KEY (ID) )"))
-      .catch(err => console.log(err))
-})
 
 function insertData(tbName,columnArr,valueArr){
     return "INSERT INTO " + tbName + " (" + columnArr.join(", ") + ") VALUES " + "(" + valueArr.join(", ") + ")"
@@ -152,6 +175,8 @@ function deleteRecords(tbName,filterColumn,filterValue){
 function deleteTable(tbName){
     return "DROP TABLE IF EXISTS " + tbName
 }
+
+useDb()
 
 exports.runCommand = (comm) => {return runCommand(comm)}
 exports.selectTable = (tbName,columnArr,limit,limitOffset) => {return runCommand(selectTable(tbName,columnArr,limit,limitOffset))}

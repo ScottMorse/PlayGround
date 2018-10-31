@@ -1,21 +1,20 @@
 let express = require('express');
 let router = express.Router();
 let path = require("path")
-let sql = require("../modules/sqlCom")
+// let sql = require("../modules/sqlCom")
 let cookieParser = require('cookie-parser')
+let db = require('../modules/postGresMod')
+let utils = require('../modules/utils')
 
-let userCookie
+const cookieName = 'SPACEPLAYUSER'
 
 router.get('/',(req,res,next) => {
-    const cookies = req.cookies
-    if(cookies.USER)
-    {
-      userCookie = cookies.USER.split('::')
-      res.render('dashboard',{username: userCookie[1]})
-    }
-    else{
-      res.redirect('../')
-    }
+  const [uid,username] = utils.checkCookie(req,cookieName)
+  if(!uid){
+    res.redirect('../') 
+    return
+  }
+  res.render('dashboard',{username:username})
 })
 
 module.exports = router;

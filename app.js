@@ -10,6 +10,7 @@ var usersRouter = require('./routes/users');
 var dashboardRouter = require('./routes/dashboard')
 var myProfileRouter = require('./routes/myprofile')
 var searchRouter = require('./routes/search')
+var profileRouter = require('./routes/profile')
 
 var app = express();
 
@@ -28,6 +29,7 @@ app.use('/users', usersRouter);
 app.use('/dashboard',dashboardRouter);
 app.use('/myprofile',myProfileRouter);
 app.use('/search',searchRouter);
+app.use('/profile',profileRouter)
 
 app.use(bodyParser.urlencoded({ extended: true }))
 

@@ -1,5 +1,5 @@
 include head.jade
     h2 Dashboard: #[span=username]
     a(href="/myprofile")#edit-prof My Profile
-    form.search-person(method='get' action='/search') #[input(type="search" placeholder="Search for people" name="query")]
+    form.search-person(method='get' action='/search') #[input(type="search" placeholder="Search for people" name="query" required)] #[input(type="submit")]
     form.logout-form(method='post' action='/logout') #[input(type="submit" value="Logout")]

@@ -1,78 +1,69 @@
 let express = require('express');
 let router = express.Router();
 let path = require("path")
-let sql = require("../modules/sqlCom")
+// let sql = require("../modules/sqlCom")
 let cookieParser = require('cookie-parser')
+let utils = require('../modules/utils')
+let db = require("../modules/postGresMod")
+
+const cookieName = 'SPACEPLAYUSER'
 
 let user
-let cookies
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  let cookies = req.cookies
-  if(cookies.USER){
+
+//change to having dashboard button instead of log/reg forms , no redirect
+router.get('/', (req, res, next) => {
+  const [uid,username] = utils.checkCookie(req,cookieName)
+  if(uid){
     res.redirect('/dashboard')
+    return
   }
-  else{
-    res.render('index');
-  }
+  res.render('index')
 })
 
-//Registration
-router.post('/register', function(req,res,next){
+router.post('/register', (req,res,next) => {
+  let valid = true
+  let blame
   const username = req.body.regUsername
   const email = req.body.regEmail
-  const pswd = sql.encryptPassword(req.body.regPswd).then(pswdHash => {
-    sql.selectTable('users').then(userTableRows => {
-      if(userTableRows.length == 0){
-         sql.insertData('users',['username','email','pswd'],[
-              sql.wrapString(username),
-              sql.wrapString(email),
-              sql.wrapString(pswdHash)
-         ]).then(result =>{
-            res.redirect('/')
-            console.log("User added.")
+  const pswd = db.encryptPassword(req.body.regPswd).then(pswdHash => {
+    db.any('SELECT  username, email  FROM users WHERE username = ' + db.wrap(username) + ' OR email = ' + db.wrap(email) + ' ;')
+      .then(rows => {
+        if(rows.length > 0){
+           rows.forEach(row => {
+             if(row.username == username){
+               res.render('index',{'regBlame': 'Username is not available'})
+               return
+             }
+             else if(row.email == email){
+               res.render('index',{'regBlame': 'Email already in use.'})
+               return
+             }
+           })
+        }
+        else{
+          db.insertNewData('users',['username','email','pswd'],[
+            db.wrap(username),
+            db.wrap(email),
+            db.wrap(pswdHash)
+          ])
+            .then(result =>{
+              db.one('SELECT * FROM users WHERE username = ' + db.wrap(username) + ';')
+                .then(userrow => {
+                  res.cookie(cookieName,userrow.id + "::" + userrow.username)
+                  res.redirect('/dashboard')
+                  console.log('User added.')
+              }).catch(err => console.log(err))
          })
-      }
-      else{
-         let valid = true
-         let blame
-         userTableRows.forEach(row=> {
-           if(row.username == username)
-           {
-             valid = false
-             blame = 'username'
-           }
-           else if(row.email == email)
-           {
-             valid = false
-             blame = 'email'
-           }
-         })
-         if(!valid){
-           res.render('index',{regBlame: 'Sorry, that ' + blame + ' is not available!'})
-           console.log("User denied")
-         }
-         else{
-          sql.insertData('users',['username','email','pswd'],[
-            sql.wrapString(username),
-            sql.wrapString(email),
-            sql.wrapString(pswdHash)
-          ]).then(result =>{
-              res.redirect('/')
-              console.log("User added.")
-          })
-         }
       }
     })
   })
 })
 
-//Login 
 router.post('/login',(req,res,next) => {
   const username = req.body.logUsername
   const pswd = req.body.logPswd
-  sql.selectTable('users').then(userTableRows => {
+  db.selectTableAll('users').then(userTableRows => {
      userTableRows.forEach(row => {
        if(username == row.username){
           user = row
@@ -82,9 +73,9 @@ router.post('/login',(req,res,next) => {
       res.render('index',{logBlame: 'Sorry, that username does not exist.'})
      }
      else{
-       sql.comparePasswords(pswd,user.pswd).then(isMatch => {
+       db.comparePasswords(pswd,user.pswd).then(isMatch => {
           if(isMatch){
-            res.cookie('USER',user.ID + "::" + user.username)
+            res.cookie(cookieName,user.id + "::" + user.username)
             res.redirect('/dashboard')
           }
           else{
@@ -96,10 +87,20 @@ router.post('/login',(req,res,next) => {
 })
 
 router.post('/logout',(req,res,next) => {
-   console.log("Logging out.")
-   user = undefined
-   res.clearCookie('USER')
-   res.redirect('/')
+    res.clearCookie(cookieName)
+    res.redirect('../')
+})
+
+router.get('/logout',(req,res,next) => {
+  res.clearCookie(cookieName)
+  res.redirect('../')
+})
+
+router.get('/register',(req,res,next) => {
+  res.redirect('/')
+})
+router.get('/login',(req,res,next) => {
+  res.redirect('/')
 })
 
 module.exports = router;
