@@ -14,3 +14,7 @@ html
     div=user.instrument
     div=user.location
     div=user.aboutme
+
+    br
+
+    form#addfriend(method="post" action="profile/addfriend") #[input.hidden(type="text" value=user.id name="uid")] #[input(type="submit" value="Add to Network")]

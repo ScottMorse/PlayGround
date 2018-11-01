@@ -4,7 +4,7 @@ let path = require("path")
 // let sql = require("../modules/sqlCom")
 let cookieParser = require('cookie-parser')
 let utils = require('../modules/utils')
-let db = require("../modules/postGresMod")
+let db = require("../modules/pgutils")
 
 const cookieName = 'SPACEPLAYUSER'
 
@@ -50,9 +50,12 @@ router.post('/register', (req,res,next) => {
             .then(result =>{
               db.one('SELECT * FROM users WHERE username = ' + db.wrap(username) + ';')
                 .then(userrow => {
+                  
                   res.cookie(cookieName,userrow.id + "::" + userrow.username)
-                  res.redirect('/dashboard')
-                  console.log('User added.')
+                  db.insertNewData('usernotifications',['uid'],[userrow.id]).then(after => {
+                    res.redirect('/dashboard')
+                    console.log('User added.')
+                  })
               }).catch(err => console.log(err))
          })
       }

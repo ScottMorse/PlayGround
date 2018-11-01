@@ -3,7 +3,7 @@ let router = express.Router();
 let path = require("path")
 // let sql = require("../modules/sqlCom")
 let cookieParser = require('cookie-parser')
-let db = require('../modules/postGresMod')
+let db = require('../modules/pgutils')
 let utils = require('../modules/utils')
 
 const cookieName = 'SPACEPLAYUSER'

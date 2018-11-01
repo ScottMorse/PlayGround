@@ -49,10 +49,30 @@ function checkDefaultTables(){
             'instrument VARCHAR(30)',
             'location VARCHAR(30)'
         ]).then(console.log('> PostgreSQL userdata table created.')).catch(err => setTimeout(checkDefaultTables,2000)))
+    db.any('SELECT * FROM userfriends;')
+        .then(after => {
+            console.log('> PostgreSQL userfriends table okay.')
+        })
+        .catch(err =>
+            createTable('userfriends', [
+                'id SERIAL PRIMARY KEY',
+                'uid INTEGER REFERENCES users(id)',
+                'network INTEGER[]',
+            ]).then(console.log('> PostgreSQL userfriends table created.')).catch(err => setTimeout(checkDefaultTables,2000)))
+    db.any('SELECT * FROM usernotifications;')
+        .then(after => {
+            console.log('> PostgreSQL usernotifications table okay.')
+        })
+        .catch(err =>
+            createTable('usernotifications', [
+                'id SERIAL PRIMARY KEY',
+                'uid INTEGER REFERENCES users(id)',
+                "notifications TEXT[] DEFAULT '{}'"
+            ]).then(console.log('> PostgreSQL usernotification table created.')).catch(err => setTimeout(checkDefaultTables,2000)))
 }
 
 function insertNewData(tbName,colArr,valArr){
-    return db.any('INSERT INTO ' + tbName + '(' + colArr.join(', ') + ')' + ' VALUES ' + ' ( ' + valArr.join(', ') + ' ) ')
+    return db.any('INSERT INTO ' + tbName + '(' + colArr.join(', ') + ')' + ' VALUES ' + ' ( ' + valArr.join(', ') + ' ) ;')
 }
 
 // for(let i=4;i < 61;i++){

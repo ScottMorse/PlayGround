@@ -4,7 +4,7 @@ const path = require("path")
 const url = require("url")
 // const sql = require("../modules/sqlCom")
 const cookieParser = require('cookie-parser')
-const db = require('../modules/postGresMod')
+const db = require('../modules/pgutils')
 const utils = require('../modules/utils')
 
 const cookieName = 'SPACEPLAYUSER'
@@ -25,7 +25,6 @@ router.get('/',(req,res,next) => {
             return
           }
           const page = parseInt(urlQuery.page)
-          console.log(result.length)
           if(page){
              let startIndex = (page - 1) * 15 - 1
              if(startIndex < 0){
@@ -52,7 +51,7 @@ router.get('/',(req,res,next) => {
              res.render('search',{'query':searchQ,'matches':result.slice(startIndex,endIndex),'showPage':[0],'page':page,'nextform':nextform,'prevform':prevform})
           }
           else{
-            res.render('search',{'query':searchQ,'matches':result.slice(0,15),'page':[1],'showPage':[0],'prevform':[],'nextform':[0]})
+            res.render('search',{'query':searchQ,'matches':result.slice(0,15),'page':1,'showPage':[0],'prevform':[],'nextform':[0]})
           }
       }).catch(err=>console.log(err))
 })
